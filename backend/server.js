@@ -4,7 +4,9 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 
 const authRoutes = require("./routes/authRoutes");
-const { protect } = require("./middleware/authMiddleware");   // NEW
+const progressRoutes = require("./routes/progressRoutes");   // NEW
+
+const { protect } = require("./middleware/authMiddleware");
 
 const app = express();
 
@@ -18,6 +20,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/progress", progressRoutes);   // NEW
 
 // Test route
 app.get("/", (req, res) => {
