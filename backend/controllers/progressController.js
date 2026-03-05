@@ -63,38 +63,32 @@ exports.deleteProgress = async (req, res) => {
 exports.getStats = async (req, res) => {
   try {
 
-    const stats = await Progress.aggregate([
-      {
-        $match: { user: req.user._id }
-      },
-      {
-        $group: {
-          _id: "$difficulty",
-          count: { $sum: 1 }
-        }
-      }
-    ]);
+    const progress = await Progress.find({ user: req.user._id });
 
-    let difficultyStats = {
-      easy: 0,
-      medium: 0,
-      hard: 0
-    };
+    let difficultyStats = { easy: 0, medium: 0, hard: 0 };
+    let platformStats = {};
+    let topicStats = {};
 
-    stats.forEach(stat => {
-      if (stat._id === "Easy") difficultyStats.easy = stat.count;
-      if (stat._id === "Medium") difficultyStats.medium = stat.count;
-      if (stat._id === "Hard") difficultyStats.hard = stat.count;
+    progress.forEach(p => {
+
+      // Difficulty stats
+      if (p.difficulty === "Easy") difficultyStats.easy++;
+      if (p.difficulty === "Medium") difficultyStats.medium++;
+      if (p.difficulty === "Hard") difficultyStats.hard++;
+
+      // Platform stats
+      platformStats[p.platform] = (platformStats[p.platform] || 0) + 1;
+
+      // Topic stats
+      topicStats[p.topic] = (topicStats[p.topic] || 0) + 1;
+
     });
 
-    const totalSolved =
-      difficultyStats.easy +
-      difficultyStats.medium +
-      difficultyStats.hard;
-
     res.json({
-      totalSolved,
-      difficulty: difficultyStats
+      totalSolved: progress.length,
+      difficulty: difficultyStats,
+      platforms: platformStats,
+      topics: topicStats
     });
 
   } catch (error) {
